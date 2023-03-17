@@ -26,8 +26,12 @@ function SetTimer({
         </Row>
         <Row className='d-flex align-items-center'>
           <Col>
-            <Button variant='outline-warning' onClick={handleIncrease}>
-              <AiOutlinePlusCircle id={incrementId} /> Increment
+            <Button
+              variant='outline-warning'
+              id={incrementId}
+              onClick={handleIncrease}
+            >
+              <AiOutlinePlusCircle /> Increment
             </Button>
           </Col>
           <Col>
@@ -36,8 +40,12 @@ function SetTimer({
             </span>
           </Col>
           <Col>
-            <Button variant='outline-warning' onClick={handleDecrease}>
-              <AiOutlineMinusCircle id={decrementId} /> Decrement{' '}
+            <Button
+              variant='outline-warning'
+              onClick={handleDecrease}
+              id={decrementId}
+            >
+              <AiOutlineMinusCircle /> Decrement{' '}
             </Button>
           </Col>
         </Row>

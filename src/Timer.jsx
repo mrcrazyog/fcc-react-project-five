@@ -15,8 +15,11 @@ function Timer() {
 
   const [breakCount, setBreakCount] = useState(5);
   const [sessionCount, setSessionCount] = useState(25);
-  const [clockCount, setClockCount] = useState(25 * 60); //multiplying to get the number of seconds
+  const [clockCount, setClockCount] = useState(sessionCount * 60); //multiplying to get the number of seconds
   const [loop, setLoop] = useState(undefined);
+  const [breakToggle, setBreakToggle] = useState(false); // if true, it means a session is running (not a break)
+  const [timerLabel, setTimerLabel] = useState('Ready to work?');
+  const [timerRunning, setTimerRunning] = useState(false);
 
   const convertTime = (count) => {
     let minutes = Math.floor(count / 60);
@@ -30,38 +33,99 @@ function Timer() {
       //if timer currently running
       clearInterval(loop);
       setLoop(undefined);
+
+      if (!breakToggle) {
+        setTimerLabel('Ready to work?');
+      }
     } else {
       setLoop(
         setInterval(() => {
           setClockCount((prevCount) => prevCount - 1);
         }, 1000)
       );
+
+      if (!breakToggle) {
+        setTimerLabel('Session in progress!');
+      }
     }
   };
 
-  const handleIncrease = () => {};
+  const handleBreakIncrease = () => {
+    setBreakCount((prevState) => (prevState < 60 ? prevState + 1 : prevState));
+  };
 
-  const handleDecrease = () => {};
+  const handleBreakDecrease = () => {
+    setBreakCount((prevState) => (prevState > 1 ? prevState - 1 : prevState));
+  };
+
+  const handleSessionIncrease = () => {
+    setSessionCount((prevState) =>
+      prevState < 60 ? prevState + 1 : prevState
+    );
+  };
+
+  const handleSessionDecrease = () => {
+    setSessionCount((prevState) => (prevState > 1 ? prevState - 1 : prevState));
+  };
 
   const handleReset = () => {
     clearInterval(loop);
     setLoop(undefined);
     setClockCount(sessionCount * 60);
+    setBreakCount(5);
+    setSessionCount(25);
+    setTimerLabel('Ready to work?');
   };
 
   useEffect(() => {
+    console.log(`The current break state is ${breakToggle} `);
+  });
+
+  useEffect(() => {
+    if (!loop) return;
+
     if (clockCount === 0) {
       clearInterval(loop);
       setLoop(undefined);
+      setBreakToggle((prevBreakToggle) => {
+        const newBreakToggle = !prevBreakToggle;
+        setClockCount(newBreakToggle ? breakCount * 60 : sessionCount * 60);
+        setTimerLabel(
+          newBreakToggle ? 'Take a break, dawg!' : 'Session in progress!'
+        );
+        return newBreakToggle;
+      });
+      return;
     }
-  }, [clockCount, loop]);
+
+    const timer = setInterval(() => {
+      setClockCount((prevCount) => {
+        if (prevCount === 1) {
+          clearInterval(timer);
+        }
+        return prevCount - 1;
+      });
+    }, 1000);
+
+    return () => {
+      clearInterval(timer);
+    };
+  }, [clockCount, loop, breakCount, breakToggle, sessionCount]);
+
+  useEffect(() => {
+    console.log(`The current clockCount is: ${clockCount} `);
+  }, [clockCount]);
+
+  useEffect(() => {
+    setClockCount(sessionCount * 60);
+  }, [sessionCount]);
 
   return (
     <div>
       <Container className='clock-container'>
         <Row>
           <Col>
-            <h1 id='timer-label'>Session</h1>
+            <h1 id='timer-label'>{timerLabel}</h1>
           </Col>
         </Row>
         <Row>
@@ -92,8 +156,8 @@ function Timer() {
               title='Break length'
               id='break-label'
               count={breakCount}
-              handleIncrease={() => handleIncrease()}
-              handleDecrease={() => handleDecrease()}
+              handleIncrease={() => handleBreakIncrease()}
+              handleDecrease={() => handleBreakDecrease()}
               incrementId='break-increment'
               decrementId='break-decrement'
               periodLength='break-length'
@@ -105,8 +169,8 @@ function Timer() {
               title='Session length'
               id='session-label'
               count={sessionCount}
-              handleIncrease={() => handleIncrease}
-              handleDecrease={() => handleDecrease}
+              handleIncrease={() => handleSessionIncrease()}
+              handleDecrease={() => handleSessionDecrease()}
               incrementId='session-increment'
               decrementId='session-decrement'
               periodLength='session-length'
