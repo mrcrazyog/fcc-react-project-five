@@ -13,13 +13,17 @@ function Timer() {
     height: '24px',
   };
 
-  const [breakCount, setBreakCount] = useState(5);
-  const [sessionCount, setSessionCount] = useState(25);
+  const [breakCount, setBreakCount] = useState(0.1);
+  const [sessionCount, setSessionCount] = useState(0.1);
   const [clockCount, setClockCount] = useState(sessionCount * 60); //multiplying to get the number of seconds
   const [loop, setLoop] = useState(undefined);
   const [breakToggle, setBreakToggle] = useState(false); // if true, it means a session is running (not a break)
   const [timerLabel, setTimerLabel] = useState('Ready to work?');
-  const [timerRunning, setTimerRunning] = useState(false);
+  const [isRunning, setIsRunning] = useState(false);
+
+  useEffect(() => {
+    setClockCount(sessionCount * 60);
+  }, [sessionCount]);
 
   const convertTime = (count) => {
     let minutes = Math.floor(count / 60);
@@ -29,8 +33,8 @@ function Timer() {
   };
 
   const handlePlayPause = () => {
-    if (loop) {
-      //if timer currently running
+    if (isRunning) {
+      // If the timer is running, clear the interval and update the label
       clearInterval(loop);
       setLoop(undefined);
 
@@ -38,16 +42,12 @@ function Timer() {
         setTimerLabel('Ready to work?');
       }
     } else {
-      setLoop(
-        setInterval(() => {
-          setClockCount((prevCount) => prevCount - 1);
-        }, 1000)
-      );
-
+      // If the timer is not running, update the label
       if (!breakToggle) {
         setTimerLabel('Session in progress!');
       }
     }
+    setIsRunning((prevState) => !prevState); // Toggle the isRunning state
   };
 
   const handleBreakIncrease = () => {
@@ -71,54 +71,48 @@ function Timer() {
   const handleReset = () => {
     clearInterval(loop);
     setLoop(undefined);
-    setClockCount(sessionCount * 60);
+    setClockCount(25 * 60);
     setBreakCount(5);
     setSessionCount(25);
+    setBreakToggle(false);
     setTimerLabel('Ready to work?');
   };
 
-  useEffect(() => {
-    console.log(`The current break state is ${breakToggle} `);
-  });
+  const handleTimerSwitch = () => {
+    const isBreak = !breakToggle;
+    setBreakToggle(isBreak);
+    setTimerLabel(isBreak ? 'Break time!' : 'Session in progress!');
+    setClockCount(isBreak ? breakCount * 60 : sessionCount * 60);
+  };
+
+  const intervalCallback = () => {
+    setClockCount((prevCount) => {
+      if (prevCount <= 0) {
+        handleTimerSwitch();
+        return breakToggle ? sessionCount * 60 : breakCount * 60;
+      }
+      return prevCount - 1;
+    });
+  };
 
   useEffect(() => {
-    if (!loop) return;
-
-    if (clockCount === 0) {
+    if (!isRunning) {
       clearInterval(loop);
-      setLoop(undefined);
-      setBreakToggle((prevBreakToggle) => {
-        const newBreakToggle = !prevBreakToggle;
-        setClockCount(newBreakToggle ? breakCount * 60 : sessionCount * 60);
-        setTimerLabel(
-          newBreakToggle ? 'Take a break, dawg!' : 'Session in progress!'
-        );
-        return newBreakToggle;
-      });
       return;
     }
 
-    const timer = setInterval(() => {
-      setClockCount((prevCount) => {
-        if (prevCount === 1) {
-          clearInterval(timer);
-        }
-        return prevCount - 1;
-      });
-    }, 1000);
+    const timer = setInterval(intervalCallback, 1000);
+
+    setLoop(timer);
 
     return () => {
       clearInterval(timer);
     };
-  }, [clockCount, loop, breakCount, breakToggle, sessionCount]);
+  }, [isRunning, breakToggle, sessionCount, breakCount]);
 
   useEffect(() => {
     console.log(`The current clockCount is: ${clockCount} `);
   }, [clockCount]);
-
-  useEffect(() => {
-    setClockCount(sessionCount * 60);
-  }, [sessionCount]);
 
   return (
     <div>
