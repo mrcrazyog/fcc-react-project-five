@@ -20,6 +20,7 @@ function Timer() {
   const [breakToggle, setBreakToggle] = useState(false); // if true, it means a session is running (not a break)
   const [timerLabel, setTimerLabel] = useState('Ready to work?');
   const [isRunning, setIsRunning] = useState(false);
+  const [lastUpdate, setLastUpdate] = useState(performance.now()); // Add this line
 
   useEffect(() => {
     setClockCount(sessionCount * 60);
@@ -86,13 +87,24 @@ function Timer() {
   };
 
   const intervalCallback = () => {
-    setClockCount((prevCount) => {
-      if (prevCount <= 0) {
-        handleTimerSwitch();
-        return breakToggle ? sessionCount * 60 : breakCount * 60;
-      }
-      return prevCount - 1;
-    });
+    const currentTime = performance.now();
+    const deltaTime = currentTime - lastUpdate;
+
+    if (deltaTime >= 1000) {
+      setLastUpdate(currentTime);
+
+      setClockCount((prevCount) => {
+        if (prevCount - 1 <= 0) {
+          if (prevCount === 1) {
+            return 0; // Set the clockCount to 0 and wait for the next interval
+          } else {
+            handleTimerSwitch();
+            return breakToggle ? sessionCount * 60 : breakCount * 60;
+          }
+        }
+        return prevCount - 1;
+      });
+    }
   };
 
   useEffect(() => {
@@ -101,7 +113,7 @@ function Timer() {
       return;
     }
 
-    const timer = setInterval(intervalCallback, 1000);
+    const timer = setInterval(intervalCallback, 1000); // Use a smaller interval for more accurate updates
 
     setLoop(timer);
 
