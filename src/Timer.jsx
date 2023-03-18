@@ -14,11 +14,11 @@ function Timer() {
   };
 
   const [breakCount, setBreakCount] = useState(5);
-  const [sessionCount, setSessionCount] = useState(5);
-  const [clockCount, setClockCount] = useState(sessionCount * 60); //multiplying to get the number of seconds
+  const [sessionCount, setSessionCount] = useState(25);
+  const [clockCount, setClockCount] = useState(25 * 60); //multiplying to get the number of seconds
   const [loop, setLoop] = useState(undefined);
   const [breakToggle, setBreakToggle] = useState(false); // if true, it means a session is running (not a break)
-  const [timerLabel, setTimerLabel] = useState('Session');
+  const [currentTimer, setCurrentTimer] = useState('Session');
   const [isRunning, setIsRunning] = useState(false);
 
   useEffect(() => {
@@ -40,49 +40,24 @@ function Timer() {
       setLoop(undefined);
 
       if (!breakToggle) {
-        setTimerLabel('Session');
+        setCurrentTimer('Session');
       }
     }
 
     setIsRunning((prevState) => !prevState); // Toggle the isRunning state
   };
 
-  const handleBreakIncrease = () => {
-    setBreakCount((prevState) => (prevState < 60 ? prevState + 1 : prevState));
-  };
-
-  const handleBreakDecrease = () => {
-    setBreakCount((prevState) => (prevState > 1 ? prevState - 1 : prevState));
-  };
-
-  const handleSessionIncrease = () => {
-    setSessionCount((prevState) =>
-      prevState < 60 ? prevState + 1 : prevState
-    );
-  };
-
-  const handleSessionDecrease = () => {
-    setSessionCount((prevState) => (prevState > 1 ? prevState - 1 : prevState));
-  };
-
-  const handleReset = () => {
-    clearInterval(loop);
-    setLoop(undefined);
-    setClockCount(25 * 60);
-    setBreakCount(5);
-    setSessionCount(25);
-    setBreakToggle(false);
-    setTimerLabel('Session');
-  };
-
   const handleTimerSwitch = () => {
     const isBreak = !breakToggle;
     setBreakToggle(isBreak);
-    setTimerLabel(isBreak ? 'Break' : 'Session');
-    setClockCount(isBreak ? breakCount * 60 : sessionCount * 60);
+    setCurrentTimer(currentTimer === 'Session' ? 'Break' : 'Session');
+    setClockCount(
+      currentTimer === 'session' ? breakCount * 60 : sessionCount * 60
+    );
   };
 
   const intervalCallback = () => {
+    //changes needed here?
     setClockCount((prevCount) => {
       if (prevCount <= 0) {
         handleTimerSwitch();
@@ -107,6 +82,35 @@ function Timer() {
     };
   }, [isRunning, breakToggle, sessionCount, breakCount]);
 
+  const handleBreakIncrease = () => {
+    setBreakCount((prevState) => (prevState < 60 ? prevState + 1 : prevState));
+  };
+
+  const handleBreakDecrease = () => {
+    setBreakCount((prevState) => (prevState > 1 ? prevState - 1 : prevState));
+  };
+
+  const handleSessionIncrease = () => {
+    setSessionCount((prevState) =>
+      prevState < 60 ? prevState + 1 : prevState
+    );
+  };
+
+  const handleSessionDecrease = () => {
+    setSessionCount((prevState) => (prevState > 1 ? prevState - 1 : prevState));
+  };
+
+  const handleReset = () => {
+    clearInterval(loop);
+    setLoop(undefined);
+    setIsRunning(false);
+    setClockCount(25 * 60);
+    setBreakCount(5);
+    setSessionCount(25);
+    setBreakToggle(false);
+    setCurrentTimer('Session');
+  };
+
   useEffect(() => {
     console.log(`The current clockCount is: ${clockCount} `);
   }, [clockCount]);
@@ -116,7 +120,7 @@ function Timer() {
       <Container className='clock-container'>
         <Row>
           <Col>
-            <h1 id='timer-label'>{timerLabel}</h1>
+            <h1 id='timer-label'>{currentTimer}</h1>
           </Col>
         </Row>
         <Row>
