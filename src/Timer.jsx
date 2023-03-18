@@ -88,13 +88,20 @@ function Timer() {
     setBreakToggle(isBreak);
     setTimerLabel(isBreak ? 'Break time!' : 'Session in progress!');
     setClockCount(isBreak ? breakCount * 60 : sessionCount * 60);
+
+    // Reset the timerReachedZero state
+    setTimerReachedZero(false);
   };
 
   const intervalCallback = () => {
     setClockCount((prevCount) => {
       if (prevCount <= 0) {
         setTimerReachedZero(true);
-        return prevCount;
+
+        // Update the timer label directly here
+        setTimerLabel(breakToggle ? 'Break time!' : 'Session in progress!');
+
+        return breakToggle ? breakCount * 60 : sessionCount * 60;
       }
       return prevCount - 1;
     });
