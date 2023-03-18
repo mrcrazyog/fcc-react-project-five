@@ -13,8 +13,8 @@ function Timer() {
     height: '24px',
   };
 
-  const [breakCount, setBreakCount] = useState(0.1);
-  const [sessionCount, setSessionCount] = useState(0.1);
+  const [breakCount, setBreakCount] = useState(5);
+  const [sessionCount, setSessionCount] = useState(25);
   const [clockCount, setClockCount] = useState(sessionCount * 60); //multiplying to get the number of seconds
   const [loop, setLoop] = useState(undefined);
   const [breakToggle, setBreakToggle] = useState(false); // if true, it means a session is running (not a break)
@@ -29,6 +29,7 @@ function Timer() {
     let minutes = Math.floor(count / 60);
     let seconds = count % 60;
     seconds = seconds < 10 ? '0' + seconds : seconds;
+    minutes = minutes < 10 ? '0' + minutes : minutes;
     return `${minutes}:${seconds}`;
   };
 
