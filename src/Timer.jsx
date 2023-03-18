@@ -13,13 +13,15 @@ function Timer() {
     height: '24px',
   };
 
-  const [breakCount, setBreakCount] = useState(0.1);
-  const [sessionCount, setSessionCount] = useState(0.1);
+  const [breakCount, setBreakCount] = useState(5);
+  const [sessionCount, setSessionCount] = useState(25);
   const [clockCount, setClockCount] = useState(sessionCount * 60); //multiplying to get the number of seconds
   const [loop, setLoop] = useState(undefined);
   const [breakToggle, setBreakToggle] = useState(false); // if true, it means a session is running (not a break)
   const [timerLabel, setTimerLabel] = useState('Ready to work?');
   const [isRunning, setIsRunning] = useState(false);
+  const [timerReachedZero, setTimerReachedZero] = useState(false);
+  const [isSwitching, setIsSwitching] = useState(false);
 
   useEffect(() => {
     setClockCount(sessionCount * 60);
@@ -30,7 +32,7 @@ function Timer() {
     let seconds = count % 60;
     minutes = minutes < 10 ? '0' + minutes : minutes;
     seconds = seconds < 10 ? '0' + seconds : seconds;
-    console.log(`${minutes}:${seconds}`);
+    console.log;
     return `${minutes}:${seconds}`;
   };
 
@@ -81,6 +83,7 @@ function Timer() {
   };
 
   const handleTimerSwitch = () => {
+    setIsSwitching(true);
     const isBreak = !breakToggle;
     setBreakToggle(isBreak);
     setTimerLabel(isBreak ? 'Break time!' : 'Session in progress!');
@@ -90,12 +93,23 @@ function Timer() {
   const intervalCallback = () => {
     setClockCount((prevCount) => {
       if (prevCount <= 0) {
-        handleTimerSwitch();
-        return breakToggle ? sessionCount * 60 : breakCount * 60;
+        setTimerReachedZero(true);
+        return prevCount;
       }
       return prevCount - 1;
     });
   };
+
+  useEffect(() => {
+    if (timerReachedZero) {
+      console.log('the timer has reached zero');
+      setTimeout(() => {
+        handleTimerSwitch();
+        setIsSwitching(false);
+        setTimerReachedZero(false);
+      }, 1000);
+    }
+  }, [timerReachedZero]);
 
   useEffect(() => {
     if (!isRunning) {
@@ -126,7 +140,9 @@ function Timer() {
         </Row>
         <Row>
           <Col>
-            <span id='time-left'>{convertTime(clockCount)} </span>
+            <span id='time-left'>
+              {timerReachedZero ? '00:00' : convertTime(clockCount)}
+            </span>
           </Col>
         </Row>
         <Row>
