@@ -20,10 +20,16 @@ function Timer() {
   const [breakToggle, setBreakToggle] = useState(false); // if true, it means a session is running (not a break)
   const [currentTimer, setCurrentTimer] = useState('Session');
   const [isRunning, setIsRunning] = useState(false);
+  const [audio, setAudio] = useState(null);
 
   useEffect(() => {
     setClockCount(sessionCount * 60);
   }, [sessionCount]);
+
+  useEffect(() => {
+    const audioElement = document.querySelector('#beep');
+    setAudio(audioElement);
+  }, []);
 
   const convertTime = (count) => {
     let minutes = Math.floor(count / 60);
@@ -54,6 +60,8 @@ function Timer() {
     setClockCount(
       currentTimer === 'Session' ? breakCount * 60 : sessionCount * 60
     );
+    audio.currentTime = 0;
+    audio.play();
   };
 
   const intervalCallback = () => {
@@ -109,6 +117,10 @@ function Timer() {
     setSessionCount(25);
     setBreakToggle(false);
     setCurrentTimer('Session');
+    if (audio) {
+      audio.pause();
+      audio.currentTime = 0;
+    }
   };
 
   useEffect(() => {
@@ -117,6 +129,11 @@ function Timer() {
 
   return (
     <div>
+      <audio
+        id='beep'
+        src='https://www.pacdv.com/sounds/interface_sound_effects/sound10.mp3'
+        type='audio/mp3'
+      ></audio>
       <Container className='clock-container'>
         <Row>
           <Col>
