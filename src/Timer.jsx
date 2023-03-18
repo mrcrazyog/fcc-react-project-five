@@ -52,7 +52,7 @@ function Timer() {
     setBreakToggle(isBreak);
     setCurrentTimer(currentTimer === 'Session' ? 'Break' : 'Session');
     setClockCount(
-      currentTimer === 'session' ? breakCount * 60 : sessionCount * 60
+      currentTimer === 'Session' ? breakCount * 60 : sessionCount * 60
     );
   };
 
